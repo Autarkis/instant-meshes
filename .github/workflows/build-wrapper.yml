@@ -1,0 +1,146 @@
+name: Build Instant Meshes Wrapper
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive  # Initialize all submodules
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Create build directory
+      run: |
+        mkdir wrapper_build
+        cd wrapper_build
+        copy ..\CMakeLists_Wrapper.txt CMakeLists.txt
+      shell: cmd
+
+    - name: Configure CMake
+      run: |
+        cd wrapper_build
+        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release .
+      shell: cmd
+
+    - name: Build
+      run: |
+        cd wrapper_build
+        cmake --build . --config Release --verbose
+      shell: cmd
+
+    - name: Verify build output
+      run: |
+        dir wrapper_build\Release\instant_meshes_wrapper.dll
+        dir wrapper_build\Release\instant_meshes_wrapper.lib
+      shell: cmd
+
+    - name: Upload DLL artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: instant_meshes_wrapper-windows-x64
+        path: |
+          wrapper_build/Release/instant_meshes_wrapper.dll
+          wrapper_build/Release/instant_meshes_wrapper.lib
+        if-no-files-found: error
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-windows
+        path: |
+          wrapper_build/CMakeCache.txt
+          wrapper_build/CMakeFiles/*.log
+        if-no-files-found: ignore
+
+  # Optional: Build for Linux (if cross-platform support needed later)
+  build-linux:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    if: false  # Disabled for now, enable when Linux support is needed
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libtbb-dev
+
+    - name: Create build directory
+      run: |
+        mkdir wrapper_build
+        cd wrapper_build
+        cp ../CMakeLists_Wrapper.txt CMakeLists.txt
+
+    - name: Configure CMake
+      run: |
+        cd wrapper_build
+        cmake -DCMAKE_BUILD_TYPE=Release .
+
+    - name: Build
+      run: |
+        cd wrapper_build
+        make -j$(nproc)
+
+    - name: Upload SO artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: instant_meshes_wrapper-linux-x64
+        path: wrapper_build/libinstant_meshes_wrapper.so
+
+  # Optional: Build for macOS
+  build-macos:
+    name: Build macOS x64
+    runs-on: macos-latest
+    if: false  # Disabled for now, enable when macOS support is needed
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install dependencies
+      run: |
+        brew install cmake tbb
+
+    - name: Create build directory
+      run: |
+        mkdir wrapper_build
+        cd wrapper_build
+        cp ../CMakeLists_Wrapper.txt CMakeLists.txt
+
+    - name: Configure CMake
+      run: |
+        cd wrapper_build
+        cmake -DCMAKE_BUILD_TYPE=Release .
+
+    - name: Build
+      run: |
+        cd wrapper_build
+        make -j$(sysctl -n hw.ncpu)
+
+    - name: Upload DYLIB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: instant_meshes_wrapper-macos-x64
+        path: wrapper_build/libinstant_meshes_wrapper.dylib

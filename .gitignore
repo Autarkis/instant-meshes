@@ -21,3 +21,22 @@ datasets
 *.filters
 *.sdf
 *.sln
+
+# Unity Wrapper Build Artifacts
+wrapper_build/
+build_log.txt
+do_build.bat
+CMakeLists_Wrapper_Actual.txt
+
+# Binaries
+*.dll
+*.lib
+*.pdb
+*.exp
+*.so
+*.dylib
+
+# Python
+__pycache__/
+*.pyc
+*.log
