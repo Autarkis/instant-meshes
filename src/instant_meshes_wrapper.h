@@ -31,6 +31,9 @@ extern "C" {
 #define INSTANT_MESHES_WRAPPER_VERSION_MINOR 0
 #define INSTANT_MESHES_WRAPPER_VERSION_PATCH 0
 
+/* ABI version - increment when breaking ABI compatibility */
+#define INSTANT_MESHES_WRAPPER_ABI_VERSION 1
+
 /* Return codes */
 typedef enum {
     IM_SUCCESS = 0,
@@ -92,6 +95,14 @@ typedef void (IMWRAPPER_CALL *IMProgressCallback)(const char* message, float pro
  * @param patch Output: patch version number
  */
 IMWRAPPER_API void IMWRAPPER_CALL IM_GetVersion(int* major, int* minor, int* patch);
+
+/**
+ * Get ABI version
+ * Used to verify binary compatibility between DLL and calling code.
+ * If ABI version doesn't match, the DLL is not compatible.
+ * @return ABI version number
+ */
+IMWRAPPER_API int IMWRAPPER_CALL IM_GetABIVersion(void);
 
 /**
  * Initialize parameters with default values

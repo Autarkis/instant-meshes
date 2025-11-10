@@ -78,6 +78,10 @@ IMWRAPPER_API void IMWRAPPER_CALL IM_GetVersion(int* major, int* minor, int* pat
     if (patch) *patch = INSTANT_MESHES_WRAPPER_VERSION_PATCH;
 }
 
+IMWRAPPER_API int IMWRAPPER_CALL IM_GetABIVersion(void) {
+    return INSTANT_MESHES_WRAPPER_ABI_VERSION;
+}
+
 IMWRAPPER_API void IMWRAPPER_CALL IM_InitializeParams(IMParameters* params) {
     if (!params) return;
 
