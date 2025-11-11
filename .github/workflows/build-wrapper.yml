@@ -31,7 +31,7 @@ jobs:
 
     - name: Patch TBB CMake version for compatibility
       run: |
-        powershell -Command "(Get-Content ext\tbb\CMakeLists.txt) -replace 'cmake_minimum_required \(VERSION 2\.8\)', 'cmake_minimum_required (VERSION 3.10)' | Set-Content ext\tbb\CMakeLists.txt"
+        powershell -Command "(Get-Content ext\tbb\CMakeLists.txt) -replace 'cmake_minimum_required \(VERSION 2\.8\)', 'cmake_minimum_required (VERSION 3.10)' -replace 'cmake_minimum_required \(VERSION 3\.1\)', 'cmake_minimum_required (VERSION 3.10)' | Set-Content ext\tbb\CMakeLists.txt"
       shell: cmd
 
     - name: Configure CMake
