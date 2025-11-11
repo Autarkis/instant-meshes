@@ -33,6 +33,9 @@ static IMProgressCallback g_progress_callback = nullptr;
 static tbb::task_scheduler_init* g_tbb_scheduler = nullptr;
 static std::mutex g_init_mutex;
 
+// Global nprocs variable used by field.cpp
+int nprocs = -1;
+
 // Helper: set last error message
 static void SetLastError(const char* msg) {
     strncpy(g_error_buffer, msg, sizeof(g_error_buffer) - 1);
