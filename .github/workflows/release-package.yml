@@ -69,85 +69,58 @@ jobs:
         cmake --build wrapper_build --config Release
       shell: cmd
 
-    - name: Create package directory structure
+    - name: Create UPM package directory structure
       run: |
-        mkdir release-package
-        mkdir release-package\Plugins
-        mkdir release-package\Plugins\x86_64
-        mkdir release-package\Scripts
-        mkdir release-package\Scripts\InstantMeshes
-        mkdir release-package\Editor
-        mkdir release-package\Documentation
+        mkdir com.mimesisforge.instant-meshes
+        mkdir com.mimesisforge.instant-meshes\Runtime
+        mkdir com.mimesisforge.instant-meshes\Runtime\Plugins
+        mkdir com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64
+        mkdir com.mimesisforge.instant-meshes\Editor
+        mkdir com.mimesisforge.instant-meshes\Documentation~
       shell: cmd
 
-    - name: Copy DLL and headers
+    - name: Copy package files
       run: |
-        copy wrapper_build\bin\instant_meshes_wrapper.dll release-package\Plugins\x86_64\
-        copy wrapper_build\Release\instant_meshes_wrapper.lib release-package\Plugins\x86_64\
-        copy src\instant_meshes_wrapper.h release-package\Plugins\
+        copy unity\package.json com.mimesisforge.instant-meshes\
+        copy unity\README.md com.mimesisforge.instant-meshes\
+        copy unity\CHANGELOG.md com.mimesisforge.instant-meshes\
+        copy LICENSE.txt com.mimesisforge.instant-meshes\LICENSE.md
       shell: cmd
 
-    - name: Copy Unity C# scripts
+    - name: Copy DLL and native libraries
       run: |
-        copy unity\Runtime\InstantMeshesAPI.cs release-package\Scripts\InstantMeshes\
-        copy unity\Runtime\Example_BuildingMeshOptimizer.cs release-package\Scripts\InstantMeshes\
+        copy wrapper_build\bin\instant_meshes_wrapper.dll com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64\
+        copy wrapper_build\Release\instant_meshes_wrapper.lib com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64\
+      shell: cmd
+
+    - name: Copy Unity C# scripts and assembly definition
+      run: |
+        copy unity\Runtime\InstantMeshesAPI.cs com.mimesisforge.instant-meshes\Runtime\
+        copy unity\Runtime\Example_BuildingMeshOptimizer.cs com.mimesisforge.instant-meshes\Runtime\
+        copy unity\Runtime\InstantMeshes.Runtime.asmdef com.mimesisforge.instant-meshes\Runtime\
       shell: cmd
 
     - name: Copy documentation
       run: |
-        copy UNITY_INTEGRATION.md release-package\Documentation\
-        copy README_WRAPPER.md release-package\Documentation\
-        copy LICENSE.txt release-package\Documentation\
+        copy UNITY_INTEGRATION.md com.mimesisforge.instant-meshes\Documentation~\
+        copy README_WRAPPER.md com.mimesisforge.instant-meshes\Documentation~\
       shell: cmd
 
-    - name: Create README for package
+    - name: Update package.json version
       run: |
-        echo # Instant Meshes for Unity - ${{ github.event.inputs.version }} > release-package\README.md
-        echo. >> release-package\README.md
-        echo ## Installation >> release-package\README.md
-        echo. >> release-package\README.md
-        echo 1. Copy the entire contents of this package to your Unity project's Assets folder >> release-package\README.md
-        echo 2. The DLL will be automatically configured for Windows x64 Standalone builds >> release-package\README.md
-        echo 3. Add InstantMeshes namespace to your scripts: `using InstantMeshes;` >> release-package\README.md
-        echo. >> release-package\README.md
-        echo ## Quick Start >> release-package\README.md
-        echo. >> release-package\README.md
-        echo ```csharp >> release-package\README.md
-        echo using InstantMeshes; >> release-package\README.md
-        echo. >> release-package\README.md
-        echo Mesh inputMesh = GetComponent^<MeshFilter^>^(^).mesh; >> release-package\README.md
-        echo Mesh optimizedMesh = InstantMeshesAPI.OptimizeMesh^(inputMesh^); >> release-package\README.md
-        echo ``` >> release-package\README.md
-        echo. >> release-package\README.md
-        echo ## Documentation >> release-package\README.md
-        echo. >> release-package\README.md
-        echo See Documentation/UNITY_INTEGRATION.md for complete API reference and examples. >> release-package\README.md
-        echo. >> release-package\README.md
-        echo ## Requirements >> release-package\README.md
-        echo. >> release-package\README.md
-        echo - Unity 2020.3 or newer >> release-package\README.md
-        echo - Windows x64 platform >> release-package\README.md
-        echo. >> release-package\README.md
-        echo ## License >> release-package\README.md
-        echo. >> release-package\README.md
-        echo BSD-style license - See Documentation/LICENSE.txt >> release-package\README.md
-      shell: cmd
-
-    - name: Create package.json with version info
-      run: |
-        powershell -Command "$content = Get-Content unity\package.json | ConvertFrom-Json; $content.version = '${{ github.event.inputs.version }}'.TrimStart('v'); $content | ConvertTo-Json -Depth 10 | Set-Content release-package\package.json"
+        powershell -Command "$content = Get-Content com.mimesisforge.instant-meshes\package.json | ConvertFrom-Json; $content.version = '${{ github.event.inputs.version }}'.TrimStart('v'); $content | ConvertTo-Json -Depth 10 | Set-Content com.mimesisforge.instant-meshes\package.json"
       shell: cmd
 
     - name: Create zip archive
       run: |
-        powershell -Command "Compress-Archive -Path release-package\* -DestinationPath InstantMeshes-Unity-${{ github.event.inputs.version }}-Windows-x64.zip"
+        powershell -Command "Compress-Archive -Path com.mimesisforge.instant-meshes -DestinationPath com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip"
       shell: cmd
 
     - name: Upload release package as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: InstantMeshes-Unity-${{ github.event.inputs.version }}-Windows-x64
-        path: InstantMeshes-Unity-${{ github.event.inputs.version }}-Windows-x64.zip
+        name: com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}
+        path: com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip
         if-no-files-found: error
 
     - name: Create GitHub Release
@@ -170,9 +143,15 @@ jobs:
 
           ## Installation
 
-          1. Download `InstantMeshes-Unity-${{ github.event.inputs.version }}-Windows-x64.zip`
-          2. Extract to your Unity project's `Assets/` folder
-          3. The DLL is pre-configured for Windows x64 Standalone
+          **Method 1: Package Manager (Recommended)**
+          1. Download `com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip`
+          2. Extract the zip
+          3. In Unity: Window → Package Manager → + → Add package from disk
+          4. Select the `package.json` inside the extracted folder
+
+          **Method 2: Manual**
+          1. Download and extract the zip
+          2. Copy the `com.mimesisforge.instant-meshes` folder to `Packages/` in your project
 
           ## Quick Start
 
@@ -199,7 +178,7 @@ jobs:
 
           Built from commit: ${{ github.sha }}
         files: |
-          InstantMeshes-Unity-${{ github.event.inputs.version }}-Windows-x64.zip
+          com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip
         draft: false
         prerelease: false
       env:
