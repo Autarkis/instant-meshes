@@ -1,0 +1,185 @@
+name: Create Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      create_github_release:
+        description: 'Create GitHub Release'
+        type: boolean
+        default: true
+
+jobs:
+  build-and-package:
+    name: Build and Package Release
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Cache TBB build
+      uses: actions/cache@v4
+      with:
+        path: |
+          wrapper_build/ext_build/tbb
+        key: tbb-windows-release-${{ hashFiles('ext/tbb/**') }}
+        restore-keys: |
+          tbb-windows-release-
+          tbb-windows-
+
+    - name: Cache CMake build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          wrapper_build
+        key: cmake-release-${{ runner.os }}-${{ hashFiles('CMakeLists_Wrapper.txt', 'src/**/*.cpp', 'src/**/*.h') }}
+        restore-keys: |
+          cmake-release-${{ runner.os }}-
+          cmake-build-${{ runner.os }}-
+
+    - name: Copy CMake wrapper configuration to root
+      run: |
+        copy CMakeLists_Wrapper.txt CMakeLists.txt
+      shell: cmd
+
+    - name: Patch TBB CMake version for compatibility
+      run: |
+        powershell -Command "(Get-Content ext\tbb\CMakeLists.txt) -replace 'cmake_minimum_required \(VERSION 2\.8\)', 'cmake_minimum_required (VERSION 3.10)' -replace 'cmake_minimum_required \(VERSION 3\.1\)', 'cmake_minimum_required (VERSION 3.10)' | Set-Content ext\tbb\CMakeLists.txt"
+      shell: cmd
+
+    - name: Configure CMake
+      run: |
+        cmake -B wrapper_build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+      shell: cmd
+
+    - name: Build
+      run: |
+        cmake --build wrapper_build --config Release
+      shell: cmd
+
+    - name: Create UPM package directory structure
+      run: |
+        mkdir com.mimesisforge.instant-meshes
+        mkdir com.mimesisforge.instant-meshes\Runtime
+        mkdir com.mimesisforge.instant-meshes\Runtime\Plugins
+        mkdir com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64
+        mkdir com.mimesisforge.instant-meshes\Editor
+        mkdir com.mimesisforge.instant-meshes\Documentation~
+      shell: cmd
+
+    - name: Copy package files
+      run: |
+        copy unity\package.json com.mimesisforge.instant-meshes\
+        copy unity\README.md com.mimesisforge.instant-meshes\
+        copy unity\CHANGELOG.md com.mimesisforge.instant-meshes\
+        copy LICENSE.txt com.mimesisforge.instant-meshes\LICENSE.md
+      shell: cmd
+
+    - name: Copy DLL and native libraries
+      run: |
+        copy wrapper_build\bin\instant_meshes_wrapper.dll com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64\
+        copy wrapper_build\Release\instant_meshes_wrapper.lib com.mimesisforge.instant-meshes\Runtime\Plugins\x86_64\
+      shell: cmd
+
+    - name: Copy Unity C# scripts and assembly definition
+      run: |
+        copy unity\Runtime\InstantMeshesAPI.cs com.mimesisforge.instant-meshes\Runtime\
+        copy unity\Runtime\Example_BuildingMeshOptimizer.cs com.mimesisforge.instant-meshes\Runtime\
+        copy unity\Runtime\InstantMeshes.Runtime.asmdef com.mimesisforge.instant-meshes\Runtime\
+      shell: cmd
+
+    - name: Copy documentation
+      run: |
+        copy UNITY_INTEGRATION.md com.mimesisforge.instant-meshes\Documentation~\
+        copy README_WRAPPER.md com.mimesisforge.instant-meshes\Documentation~\
+      shell: cmd
+
+    - name: Update package.json version
+      run: |
+        powershell -Command "$content = Get-Content com.mimesisforge.instant-meshes\package.json | ConvertFrom-Json; $content.version = '${{ github.event.inputs.version }}'.TrimStart('v'); $content | ConvertTo-Json -Depth 10 | Set-Content com.mimesisforge.instant-meshes\package.json"
+      shell: cmd
+
+    - name: Create zip archive
+      run: |
+        powershell -Command "Compress-Archive -Path com.mimesisforge.instant-meshes -DestinationPath com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip"
+      shell: cmd
+
+    - name: Upload release package as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}
+        path: com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip
+        if-no-files-found: error
+
+    - name: Create GitHub Release
+      if: ${{ github.event.inputs.create_github_release == 'true' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        name: Instant Meshes Unity Wrapper ${{ github.event.inputs.version }}
+        body: |
+          # Instant Meshes for Unity ${{ github.event.inputs.version }}
+
+          High-quality quad-dominant mesh optimization for Unity.
+
+          ## What's Included
+
+          - `instant_meshes_wrapper.dll` - Native Windows x64 library
+          - `InstantMeshesAPI.cs` - Unity C# wrapper
+          - `Example_BuildingMeshOptimizer.cs` - Example component
+          - Complete documentation
+
+          ## Installation
+
+          **Method 1: Package Manager (Recommended)**
+          1. Download `com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip`
+          2. Extract the zip
+          3. In Unity: Window → Package Manager → + → Add package from disk
+          4. Select the `package.json` inside the extracted folder
+
+          **Method 2: Manual**
+          1. Download and extract the zip
+          2. Copy the `com.mimesisforge.instant-meshes` folder to `Packages/` in your project
+
+          ## Quick Start
+
+          ```csharp
+          using InstantMeshes;
+
+          Mesh optimizedMesh = InstantMeshesAPI.OptimizeMesh(inputMesh);
+          ```
+
+          ## Requirements
+
+          - Unity 2020.3+
+          - Windows x64
+
+          ## Documentation
+
+          See `Documentation/UNITY_INTEGRATION.md` for complete API reference.
+
+          ## Performance
+
+          - Typical reduction: 50-80% triangles
+          - Processing time: <1s for 20k triangles
+          - Quad-dominant output ideal for architecture
+
+          Built from commit: ${{ github.sha }}
+        files: |
+          com.mimesisforge.instant-meshes-${{ github.event.inputs.version }}.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

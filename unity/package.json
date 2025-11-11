@@ -1,0 +1,36 @@
+{
+  "name": "com.mimesisforge.instant-meshes",
+  "displayName": "Instant Meshes",
+  "version": "1.0.0",
+  "unity": "2020.3",
+  "description": "High-quality quad-dominant mesh optimization for Unity. Powered by the Instant Meshes field-aligned remeshing algorithm. Perfect for optimizing procedurally generated building meshes, LOD generation, and general mesh simplification.",
+  "keywords": [
+    "mesh",
+    "optimization",
+    "remeshing",
+    "quad",
+    "geometry",
+    "procedural",
+    "building",
+    "architecture"
+  ],
+  "category": "Modeling",
+  "author": {
+    "name": "Mimesis Forge",
+    "email": "mimesisforge@gmail.com",
+    "url": "https://github.com/Autarkis/instant-meshes"
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Autarkis/instant-meshes.git"
+  },
+  "dependencies": {},
+  "samples": [
+    {
+      "displayName": "Building Mesh Optimization Example",
+      "description": "Example component showing how to optimize building meshes",
+      "path": "Samples~/BasicExample"
+    }
+  ]
+}
