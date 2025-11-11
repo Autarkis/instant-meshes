@@ -69,8 +69,8 @@ jobs:
 
     - name: Copy Unity C# scripts
       run: |
-        copy unity\InstantMeshesAPI.cs release-package\Scripts\InstantMeshes\
-        copy unity\Example_BuildingMeshOptimizer.cs release-package\Scripts\InstantMeshes\
+        copy unity\Runtime\InstantMeshesAPI.cs release-package\Scripts\InstantMeshes\
+        copy unity\Runtime\Example_BuildingMeshOptimizer.cs release-package\Scripts\InstantMeshes\
       shell: cmd
 
     - name: Copy documentation
