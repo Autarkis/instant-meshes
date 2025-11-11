@@ -100,45 +100,6 @@ jobs:
         copy LICENSE.txt release-package\Documentation\
       shell: cmd
 
-    - name: Create DLL meta file for Unity
-      run: |
-        echo # Automatically configure DLL import settings > release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo fileFormatVersion: 2 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo guid: $(python -c "import uuid; print(str(uuid.uuid4()).replace('-',''))") >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo PluginImporter: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   externalObjects: {} >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   serializedVersion: 2 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   iconMap: {} >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   executionOrder: {} >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   defineConstraints: [] >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   isPreloaded: 0 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   isOverridable: 1 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   isExplicitlyReferenced: 0 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   validateReferences: 1 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   platformData: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   - first: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       Any: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo     second: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       enabled: 0 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       settings: {} >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   - first: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       Editor: Editor >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo     second: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       enabled: 0 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       settings: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo         CPU: x86_64 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo         DefaultValueInitialized: true >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   - first: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       Standalone: Win64 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo     second: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       enabled: 1 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo       settings: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo         CPU: x86_64 >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   userData: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   assetBundleName: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-        echo   assetBundleVariant: >> release-package\Plugins\x86_64\instant_meshes_wrapper.dll.meta
-      shell: cmd
-
     - name: Create README for package
       run: |
         echo # Instant Meshes for Unity - ${{ github.event.inputs.version }} > release-package\README.md
