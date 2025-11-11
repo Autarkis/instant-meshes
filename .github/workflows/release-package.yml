@@ -172,13 +172,9 @@ jobs:
         echo BSD-style license - See Documentation/LICENSE.txt >> release-package\README.md
       shell: cmd
 
-    - name: Create version info file
+    - name: Create package.json with version info
       run: |
-        echo { > release-package\version.json
-        echo   "version": "${{ github.event.inputs.version }}", >> release-package\version.json
-        echo   "build_date": "$(date +%%Y-%%m-%%d)", >> release-package\version.json
-        echo   "commit": "${{ github.sha }}" >> release-package\version.json
-        echo } >> release-package\version.json
+        powershell -Command "$content = Get-Content unity\package.json | ConvertFrom-Json; $content.version = '${{ github.event.inputs.version }}'.TrimStart('v'); $content | ConvertTo-Json -Depth 10 | Set-Content release-package\package.json"
       shell: cmd
 
     - name: Create zip archive
