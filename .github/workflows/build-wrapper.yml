@@ -24,23 +24,24 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Create build directory
+    - name: Copy CMake wrapper configuration to root
       run: |
-        mkdir wrapper_build
-        cd wrapper_build
-        copy ..\CMakeLists_Wrapper.txt CMakeLists.txt
+        copy CMakeLists_Wrapper.txt CMakeLists.txt
+      shell: cmd
+
+    - name: Patch TBB CMake version for compatibility
+      run: |
+        powershell -Command "(Get-Content ext\tbb\CMakeLists.txt) -replace 'cmake_minimum_required \(VERSION 2\.8\)', 'cmake_minimum_required (VERSION 3.10)' | Set-Content ext\tbb\CMakeLists.txt"
       shell: cmd
 
     - name: Configure CMake
       run: |
-        cd wrapper_build
-        cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release .
+        cmake -B wrapper_build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
       shell: cmd
 
     - name: Build
       run: |
-        cd wrapper_build
-        cmake --build . --config Release --verbose
+        cmake --build wrapper_build --config Release --verbose
       shell: cmd
 
     - name: Verify build output
