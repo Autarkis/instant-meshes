@@ -36,7 +36,9 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -B wrapper_build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        cmake -B wrapper_build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release > cmake_config.log 2>&1
+        type cmake_config.log
+        if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
       shell: cmd
 
     - name: Build
@@ -65,8 +67,11 @@ jobs:
       with:
         name: build-logs-windows
         path: |
+          cmake_config.log
           wrapper_build/CMakeCache.txt
           wrapper_build/CMakeFiles/*.log
+          wrapper_build/CMakeFiles/CMakeError.log
+          wrapper_build/CMakeFiles/CMakeOutput.log
         if-no-files-found: ignore
 
   # Optional: Build for Linux (if cross-platform support needed later)
