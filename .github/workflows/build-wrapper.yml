@@ -24,6 +24,24 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
+    - name: Cache TBB build
+      uses: actions/cache@v4
+      with:
+        path: |
+          wrapper_build/ext_build/tbb
+        key: tbb-windows-${{ hashFiles('ext/tbb/**') }}
+        restore-keys: |
+          tbb-windows-
+
+    - name: Cache CMake build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          wrapper_build
+        key: cmake-build-${{ runner.os }}-${{ hashFiles('CMakeLists_Wrapper.txt', 'src/**/*.cpp', 'src/**/*.h') }}
+        restore-keys: |
+          cmake-build-${{ runner.os }}-
+
     - name: Copy CMake wrapper configuration to root
       run: |
         copy CMakeLists_Wrapper.txt CMakeLists.txt
